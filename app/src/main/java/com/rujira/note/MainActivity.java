@@ -1,13 +1,16 @@
 package com.rujira.note;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -121,8 +124,10 @@ public class MainActivity extends AppCompatActivity {
     public void loadNotes(View v) {
 //        notebookRef.whereEqualTo("priority", 2)
         notebookRef.whereGreaterThanOrEqualTo("priority", 2)
-                .orderBy("priority", Query.Direction.DESCENDING)
-                .limit(3)
+//                .whereEqualTo("title","Pr")
+                // Where again is "AND"
+                .orderBy("priority")
+                .orderBy("title")
                 .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
@@ -143,6 +148,12 @@ public class MainActivity extends AppCompatActivity {
                                     "\n" + "------------------------------------------\n\n";
                         }
                         tvData.setText(data);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG, e.toString());
                     }
                 });
     }
