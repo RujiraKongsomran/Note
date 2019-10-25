@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText etTitle;
     private EditText etDescription;
+    private EditText etPriority;
     private TextView tvData;
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -45,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private void initInstances() {
         etTitle = (EditText) findViewById(R.id.etTitle);
         etDescription = (EditText) findViewById(R.id.etDescription);
+        etPriority = (EditText) findViewById(R.id.etPriority);
         tvData = (TextView) findViewById(R.id.tvData);
 
     }
@@ -66,9 +69,12 @@ public class MainActivity extends AppCompatActivity {
                     String documentId = note.getDocumentId();
                     String title = note.getTitle();
                     String description = note.getDescription();
+                    int priority = note.getPriority();
+
                     data += "ID : " + documentId +
                             "\nTitle : " + title +
                             "\nDescription : " + description +
+                            "\nPriority : " + priority +
                             "\n" + "------------------------------------------\n\n";
                 }
 
@@ -81,7 +87,12 @@ public class MainActivity extends AppCompatActivity {
         String title = etTitle.getText().toString();
         String description = etDescription.getText().toString();
 
-        Note note = new Note(title, description);
+        if (etPriority.length() == 0) {
+            etPriority.setText("0");
+        }
+        int priority = Integer.parseInt(etPriority.getText().toString());
+
+        Note note = new Note(title, description, priority);
         notebookRef.add(note);
     }
 
@@ -108,7 +119,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadNotes(View v) {
-        notebookRef.get()
+//        notebookRef.whereEqualTo("priority", 2)
+        notebookRef.whereGreaterThanOrEqualTo("priority", 2)
+                .orderBy("priority", Query.Direction.DESCENDING)
+                .limit(3)
+                .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -120,9 +135,11 @@ public class MainActivity extends AppCompatActivity {
                             String documentId = note.getDocumentId();
                             String title = note.getTitle();
                             String description = note.getDescription();
+                            int priority = note.getPriority();
                             data += "ID : " + documentId +
                                     "\nTitle : " + title +
                                     "\nDescription : " + description +
+                                    "\nPriority : " + priority +
                                     "\n" + "------------------------------------------\n\n";
                         }
                         tvData.setText(data);
